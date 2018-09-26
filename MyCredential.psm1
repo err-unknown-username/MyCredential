@@ -21,7 +21,7 @@ function Add-MyCredential
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$Username,
-        [Parameter(Mandatory=$false)][string]$PasswordsFolder = "C:\Users\DavidWhitehead\OneDrive\OneDrive - RecordPoint Software\Documents\WindowsPowerShell\Passwords"
+        [Parameter(Mandatory=$false)][string]$PasswordsFolder = (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'MyCredential')
     )
 
     if( -not (Test-Path $PasswordsFolder) )
