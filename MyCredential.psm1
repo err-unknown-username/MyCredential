@@ -44,7 +44,7 @@ function Get-MyCredential
     [CmdletBinding()]
     Param (
         [OutputType([System.Management.Automation.PSCredential])]
-        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string]$Username,
+        [Parameter(Mandatory=$false)][string]$Username,
         [Parameter(Mandatory=$false)][string]$PasswordsFolder =  (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'MyCredential')
     )
 
@@ -83,6 +83,24 @@ function Get-MyCredential
     $cred
 }
 Export-ModuleMember -Function Get-MyCredential
+
+
+function Get-MyCredentialPassword
+{
+    [CmdletBinding()]
+    Param (
+        [OutputType([System.Management.Automation.PSCredential])]
+        [Parameter(Mandatory=$false)][string]$Username,
+        [Parameter(Mandatory=$false)][boolean]$ToClipboard = $true,
+        [Parameter(Mandatory=$false)][string]$PasswordsFolder =  (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'MyCredential')
+    )
+    $cred = Get-MyCredential -Username $Username -PasswordsFolder $PasswordsFolder
+    $unsecure = (New-Object PSCredential $cred.UserName,$cred.Password).GetNetworkCredential().Password
+
+    if($ToClipboard) { Set-Clipboard -Value $unsecure }
+    Write-Output $unsecure
+}
+Export-ModuleMember -Function Get-MyCredentialPassword
 
 
 function Get-MySPOnlineCredential
