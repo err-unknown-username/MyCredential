@@ -32,9 +32,9 @@ function Add-MyCredential
         }
     }
 
-    $passwordFile = Join-Path $PasswordsFolder $( $username.Replace('\','##') + ".pwd" )
+    $passwordFile = Join-Path $PasswordsFolder $( $username.Replace('\','##') + ".xml" )
     $cred = Get-Credential -Message "Enter Password" -UserName $Username
-    $cred.Password | ConvertFrom-SecureString | Set-Content $passwordFile
+    Export-Clixml -InputObject $cred -Path $passwordFile
 }
 Export-ModuleMember -Function Add-MyCredential
 
@@ -52,7 +52,7 @@ function Get-MyCredential
     {
         Write-Verbose 'Username parameter missing, select from registered usernames:' -Verbose
         $options = @{}
-        $i=0;  dir $PasswordsFolder | %{ $options[$i]=($_.Name).Replace('##','\').Replace(".pwd",""); $i++} 
+        $i=0;  dir $PasswordsFolder | %{ $options[$i]=($_.Name).Replace('##','\').Replace(".xml",""); $i++} 
         $options.GetEnumerator() | Sort-Object -Property Value | %{ 
             Write-Verbose "`t$($_.Key)`t:`t$($_.Value)" -Verbose 
         }
@@ -70,16 +70,14 @@ function Get-MyCredential
         }
     }
 
-    $passwordFile = Join-Path $PasswordsFolder $( $Username.Replace('\','##') + ".pwd" )
+    $passwordFile = Join-Path $PasswordsFolder $( $Username.Replace('\','##') + ".xml" )
     if( -not (Test-Path $passwordFile) )
     {
         throw "Password file not found $passwordFile"
     }
 
 
-    $password     = Get-Content $passwordFile | ConvertTo-SecureString
-    $cred         = New-Object System.Management.Automation.PSCredential $Username, $password
-
+    $cred = Import-Clixml -Path $passwordFile
     $cred
 }
 Export-ModuleMember -Function Get-MyCredential
@@ -97,7 +95,10 @@ function Get-MyCredentialPassword
     $cred = Get-MyCredential -Username $Username -PasswordsFolder $PasswordsFolder
     $unsecure = (New-Object PSCredential $cred.UserName,$cred.Password).GetNetworkCredential().Password
 
-    if($ToClipboard) { Set-Clipboard -Value $unsecure }
+    if($ToClipboard) 
+    { 
+        Set-Clipboard -Value $unsecure
+    }
     Write-Output $unsecure
 }
 Export-ModuleMember -Function Get-MyCredentialPassword
@@ -122,7 +123,7 @@ function Get-MySPOnlineCredential
     {
         Write-Verbose 'Username parameter missing, select from registered usernames:' -Verbose
         $options = @{}
-        $i=0;  dir $PasswordsFolder | %{ $options[$i]=($_.Name).Replace(".pwd",""); $i++} 
+        $i=0;  dir $PasswordsFolder | %{ $options[$i]=($_.Name).Replace(".xml",""); $i++} 
         $options.GetEnumerator() | Sort-Object -Property Value | %{ 
             Write-Verbose "`t$($_.Key)`t:`t$($_.Value)" -Verbose 
         }
@@ -140,7 +141,7 @@ function Get-MySPOnlineCredential
         }
     }
 
-    $passwordFile = Join-Path $PasswordsFolder $( $Username.Replace('\','##') + ".pwd" )
+    $passwordFile = Join-Path $PasswordsFolder $( $Username.Replace('\','##') + ".xml" )
     if( -not (Test-Path $passwordFile) )
     {
         throw "Password file not found $passwordFile"
